@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>// DESIGN.PROPOSAL // v1.0 //</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+:root {
+  --bg: #0a0a0f;
+  --bg2: #11111a;
+  --bg3: #1a1a28;
+  --panel: #13131f;
+  --green: #39ff6e;
+  --green2: #1aaa3f;
+  --green3: #0d5520;
+  --amber: #ffcc00;
+  --amber2: #cc9900;
+  --cyan: #00e5ff;
+  --pink: #ff4da6;
+  --red: #ff3333;
+  --gray: #555577;
+  --gray2: #33334a;
+  --border: #2a2a42;
+  --px: 2px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--green);
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  image-rendering: pixelated;
+}
+
+/* ── Scanlines overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.07) 3px,
+    rgba(0,0,0,0.07) 4px
+  );
+}
+
+/* ── CRT vignette ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(0,0,0,0.55) 100%);
+}
+
+/* ── Pixel border mixin ── */
+.px-border {
+  border: var(--px) solid var(--green);
+  box-shadow:
+    var(--px) var(--px) 0 var(--green3),
+    inset var(--px) var(--px) 0 var(--green3);
+}
+
+.px-border-amber {
+  border: var(--px) solid var(--amber);
+  box-shadow: var(--px) var(--px) 0 var(--amber2);
+}
+
+.px-border-cyan {
+  border: var(--px) solid var(--cyan);
+  box-shadow: var(--px) var(--px) 0 #005566;
+}
+
+/* ── Typography ── */
+h1, h2, h3, .pixel { font-family: 'Press Start 2P', monospace; }
+
+/* ── Header / Taskbar ── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  background: var(--bg2);
+  border-bottom: var(--px) solid var(--green);
+  padding: 0 16px;
+}
+
+.taskbar {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  gap: 0;
+}
+
+.taskbar-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--bg);
+  background: var(--green);
+  padding: 6px 10px;
+  letter-spacing: 0.05em;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.taskbar-dots {
+  display: flex;
+  gap: 6px;
+  margin-right: 16px;
+}
+.dot {
+  width: 10px; height: 10px;
+  display: inline-block;
+}
+.dot-red   { background: var(--red); }
+.dot-amber { background: var(--amber); }
+.dot-green { background: var(--green); }
+
+.taskbar-nav {
+  display: flex;
+  gap: 0;
+  flex: 1;
+}
+
+.taskbar-nav a {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--green);
+  text-decoration: none;
+  padding: 0 12px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--border);
+  transition: background 0.1s, color 0.1s;
+  letter-spacing: 0.05em;
+}
+
+.taskbar-nav a:hover { background: var(--green); color: var(--bg); }
+
+.taskbar-clock {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--amber);
+  margin-left: auto;
+  letter-spacing: 0.05em;
+}
+
+/* ── Boot / Hero ── */
+.hero {
+  padding: 60px 24px 50px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.boot-log {
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  color: var(--gray);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.boot-log span { color: var(--green); }
+.boot-log .ok { color: var(--green); }
+.boot-log .warn { color: var(--amber); }
+.boot-log .err { color: var(--red); }
+
+.hero-window {
+  background: var(--panel);
+  border: var(--px) solid var(--green);
+  box-shadow:
+    4px 4px 0 var(--green3),
+    inset 0 0 40px rgba(57,255,110,0.04);
+  margin-bottom: 32px;
+}
+
+.win-titlebar {
+  background: var(--green);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.win-titlebar-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--bg);
+  letter-spacing: 0.04em;
+}
+
+.win-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.win-btn {
+  width: 14px; height: 14px;
+  background: var(--bg);
+  border: 1px solid var(--bg2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--green);
+  cursor: default;
+}
+
+.win-body {
+  padding: 32px 28px;
+}
+
+.hero-eyebrow {
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  color: var(--cyan);
+  margin-bottom: 16px;
+  letter-spacing: 0.08em;
+}
+
+.hero-eyebrow::before { content: '> '; color: var(--gray); }
+
+.hero h1 {
+  font-size: clamp(1.1rem, 3vw, 1.6rem);
+  color: var(--green);
+  line-height: 1.6;
+  margin-bottom: 20px;
+  text-shadow: 0 0 12px rgba(57,255,110,0.5);
+}
+
+.hero-sub {
+  font-size: 20px;
+  color: var(--gray);
+  margin-bottom: 28px;
+  line-height: 1.5;
+  max-width: 560px;
+}
+
+.hero-sub .hl { color: var(--amber); }
+
+.progress-block { margin-bottom: 28px; }
+
+.progress-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--gray);
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
+}
+
+.progress-bar {
+  height: 14px;
+  background: var(--bg3);
+  border: 1px solid var(--green3);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--green) 0px,
+    var(--green) 8px,
+    var(--green2) 8px,
+    var(--green2) 10px
+  );
+  animation: loadBar 1.5s ease-out forwards;
+  width: 0;
+}
+
+@keyframes loadBar { to { width: var(--w, 100%); } }
+
+.hero-cta-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-primary {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  background: var(--green);
+  color: var(--bg);
+  border: none;
+  padding: 10px 18px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.05em;
+  box-shadow: 3px 3px 0 var(--green3);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.btn-primary:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--green3); }
+.btn-primary:active { transform: translate(3px,3px); box-shadow: none; }
+
+.btn-ghost {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  background: transparent;
+  color: var(--cyan);
+  border: var(--px) solid var(--cyan);
+  padding: 10px 18px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.05em;
+  box-shadow: 3px 3px 0 #005566;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.btn-ghost:hover { transform: translate(1px,1px); box-shadow: 2px 2px 0 #005566; background: rgba(0,229,255,0.07); }
+
+/* ── Pixel divider ── */
+.px-divider {
+  border: none;
+  border-top: var(--px) solid var(--border);
+  margin: 0;
+  position: relative;
+}
+
+.px-divider::before {
+  content: '▓▒░  FILE LISTING  ░▒▓';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: var(--gray);
+  background: var(--bg);
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+/* ── Section ── */
+.section {
+  padding: 72px 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.section-header {
+  margin-bottom: 40px;
+}
+
+.sec-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--gray);
+  letter-spacing: 0.14em;
+  margin-bottom: 10px;
+}
+
+.sec-label::before { content: '[ '; }
+.sec-label::after  { content: ' ]'; }
+
+.section-header h2 {
+  font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+  color: var(--green);
+  text-shadow: 0 0 10px rgba(57,255,110,0.4);
+  margin-bottom: 10px;
+}
+
+.section-header p {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: var(--gray);
+}
+
+/* ── Design Cards (file explorer style) ── */
+.design-list { display: flex; flex-direction: column; gap: 24px; }
+
+.design-card {
+  background: var(--panel);
+  border: var(--px) solid var(--border);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s, transform 0.5s;
+}
+
+.design-card.visible { opacity: 1; transform: none; }
+
+.design-card:hover {
+  border-color: var(--green);
+  box-shadow: 4px 4px 0 var(--green3);
+}
+
+.card-titlebar {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-titlebar-icon { color: var(--amber); font-size: 14px; }
+
+.card-titlebar-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--amber);
+  letter-spacing: 0.04em;
+  flex: 1;
+}
+
+.card-titlebar-size {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: var(--gray);
+}
+
+.card-body {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+}
+
+.card-preview {
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  position: relative;
+  overflow: hidden;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+/* pixel grid pattern */
+.card-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(57,255,110,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(57,255,110,0.04) 1px, transparent 1px);
+  background-size: 16px 16px;
+  pointer-events: none;
+}
+
+.card-preview img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+  image-rendering: auto;
+}
+
+.preview-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.pixel-art-frame {
+  width: 80px; height: 80px;
+  border: var(--px) solid var(--green3);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 1px;
+  padding: 4px;
+}
+
+.pixel-art-frame .px { background: var(--green3); }
+.pixel-art-frame .px.lit { background: var(--green); }
+.pixel-art-frame .px.dim { background: var(--green3); opacity: 0.4; }
+
+.preview-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--gray);
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.card-info {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card-meta-row {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.card-meta-item {
+  flex: 1;
+  padding: 6px 10px;
+  border-right: 1px solid var(--border);
+}
+.card-meta-item:last-child { border-right: none; }
+
+.meta-key {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: var(--gray);
+  display: block;
+  margin-bottom: 3px;
+  letter-spacing: 0.06em;
+}
+
+.meta-val {
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  color: var(--cyan);
+}
+
+.card-desc {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: var(--gray);
+  line-height: 1.55;
+}
+
+.card-desc::before {
+  content: '// ';
+  color: var(--green3);
+}
+
+.card-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: var(--bg);
+  background: var(--green2);
+  padding: 4px 8px;
+  letter-spacing: 0.05em;
+}
+
+.tag-cyan {
+  background: transparent;
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
+}
+
+.card-actions {
+  margin-top: auto;
+}
+
+.btn-dl {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  background: var(--bg3);
+  color: var(--green);
+  border: var(--px) solid var(--green);
+  padding: 10px 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.05em;
+  box-shadow: 3px 3px 0 var(--green3);
+  transition: transform 0.1s, box-shadow 0.1s;
+  text-decoration: none;
+}
+
+.btn-dl::before { content: '▶ '; }
+.btn-dl:hover { background: var(--green); color: var(--bg); transform: translate(1px,1px); box-shadow: 2px 2px 0 var(--green3); }
+.btn-dl:active { transform: translate(3px,3px); box-shadow: none; }
+
+/* ── FAQ ── */
+.faq-window {
+  background: var(--panel);
+  border: var(--px) solid var(--border);
+  overflow: hidden;
+}
+
+.faq-item {
+  border-bottom: 1px solid var(--border);
+}
+
+.faq-item:last-child { border-bottom: none; }
+
+.faq-q {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  cursor: pointer;
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  color: var(--green);
+  list-style: none;
+  transition: background 0.1s;
+  user-select: none;
+}
+
+.faq-q:hover { background: var(--bg3); }
+
+.faq-q::before {
+  content: '▶';
+  font-size: 11px;
+  color: var(--green3);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+details[open] .faq-q::before {
+  transform: rotate(90deg);
+  color: var(--green);
+}
+
+.faq-a {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: var(--gray);
+  padding: 0 18px 16px 38px;
+  line-height: 1.6;
+  border-top: 1px solid var(--bg3);
+}
+
+/* ── Footer ── */
+footer {
+  background: var(--bg2);
+  border-top: var(--px) solid var(--green);
+  padding: 40px 24px;
+}
+
+.footer-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+.footer-block-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--green2);
+  margin-bottom: 12px;
+  letter-spacing: 0.08em;
+}
+
+.footer-block-label::after { content: ':'; }
+
+.footer-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  color: var(--green);
+  margin-bottom: 8px;
+  text-shadow: 0 0 8px rgba(57,255,110,0.4);
+}
+
+.footer-role {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: var(--gray);
+}
+
+.contact-list { list-style: none; }
+.contact-list li {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.contact-list li::before { content: '> '; color: var(--green3); }
+
+.contact-list a {
+  color: var(--cyan);
+  text-decoration: none;
+  transition: color 0.1s;
+}
+
+.contact-list a:hover { color: var(--green); }
+
+.footer-copy {
+  max-width: 900px;
+  margin: 24px auto 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: var(--gray);
+  text-align: center;
+}
+
+/* ── Cursor blink ── */
+.cursor::after {
+  content: '█';
+  animation: blink 1s step-end infinite;
+  color: var(--green);
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ── Glitch effect ── */
+@keyframes glitch {
+  0%,95%,100% { clip-path: none; transform: none; }
+  96% { clip-path: rect(0 9999px 20px 0); transform: translateX(3px); }
+  97% { clip-path: rect(30px 9999px 60px 0); transform: translateX(-3px); }
+  98% { clip-path: rect(10px 9999px 40px 0); transform: translateX(2px); }
+}
+
+.glitch-text {
+  animation: glitch 6s ease infinite;
+  position: relative;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .card-body { grid-template-columns: 1fr; }
+  .card-preview { min-height: 160px; border-right: none; border-bottom: 1px solid var(--border); }
+  .footer-inner { grid-template-columns: 1fr; }
+  .taskbar-nav { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="taskbar">
+    <div class="taskbar-title">DESIGN.EXE</div>
+    <div class="taskbar-dots">
+      <span class="dot dot-red"></span>
+      <span class="dot dot-amber"></span>
+      <span class="dot dot-green"></span>
+    </div>
+    <nav class="taskbar-nav">
+      <a href="#designs">FILE LIST</a>
+      <a href="#faq">README</a>
+      <a href="#contact">CONTACT</a>
+    </nav>
+    <span class="taskbar-clock" id="clock">00:00:00</span>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+
+  <div class="boot-log">
+    <div><span class="ok">[  OK  ]</span> Loading design assets…</div>
+    <div><span class="ok">[  OK  ]</span> Initializing client review mode…</div>
+    <div><span class="warn">[ WARN ]</span> 3 files pending approval</div>
+    <div><span class="ok">[  OK  ]</span> System ready.</div>
+  </div>
+
+  <div class="hero-window">
+    <div class="win-titlebar">
+      <span class="win-titlebar-text">C:\DESIGN\PROPOSAL\INDEX.EXE — [CLIENT VIEW]</span>
+      <div class="win-controls">
+        <div class="win-btn">_</div>
+        <div class="win-btn">□</div>
+        <div class="win-btn">✕</div>
+      </div>
+    </div>
+    <div class="win-body">
+      <div class="hero-eyebrow">UI DESIGN PROPOSAL v1.0.0</div>
+      <h1 class="glitch-text">UIデザイン提案書<br>ご確認のお願い<span class="cursor"></span></h1>
+      <p class="hero-sub">
+        本ページは <span class="hl">UIデザイン案 3点</span> をご確認いただくための<br>
+        専用ファイル共有ページです。<br>
+        各デザインのダウンロードはこちらから。
+      </p>
+
+      <div class="progress-block">
+        <div class="progress-label">LOADING DESIGN FILES...</div>
+        <div class="progress-bar"><div class="progress-fill" style="--w:100%"></div></div>
+      </div>
+      <div class="progress-block">
+        <div class="progress-label">FILES READY (3/3)</div>
+        <div class="progress-bar"><div class="progress-fill" style="--w:100%; animation-delay:0.3s"></div></div>
+      </div>
+
+      <div class="hero-cta-row">
+        <a href="#designs" class="btn-primary">VIEW FILES</a>
+        <a href="#faq" class="btn-ghost">README.TXT</a>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<hr class="px-divider">
+
+<!-- DESIGNS -->
+<section class="section" id="designs">
+  <div class="section-header">
+    <div class="sec-label">SECTION_01</div>
+    <h2>DESIGN FILES — 3 ITEMS</h2>
+    <p>&gt; 以下の3つのデザイン案をご確認ください。各ファイルはPNG形式でダウンロード可能です。</p>
+  </div>
+
+  <div class="design-list">
+
+    <!-- Card 01 -->
+    <div class="design-card">
+      <div class="card-titlebar">
+        <span class="card-titlebar-icon">📄</span>
+        <span class="card-titlebar-name">DESIGN_A_MINIMAL.PNG</span>
+        <span class="card-titlebar-size">1920×1080px · PNG</span>
+      </div>
+      <div class="card-body">
+        <div class="card-preview">
+          <!-- <img src="design-01.png" alt="Design A"> -->
+          <div class="preview-placeholder">
+            <div class="pixel-art-frame">
+              <div class="px"></div><div class="px lit"></div><div class="px lit"></div><div class="px lit"></div><div class="px"></div>
+              <div class="px lit"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px lit"></div>
+              <div class="px lit"></div><div class="px"></div><div class="px lit"></div><div class="px"></div><div class="px lit"></div>
+              <div class="px lit"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px lit"></div>
+              <div class="px"></div><div class="px lit"></div><div class="px lit"></div><div class="px lit"></div><div class="px"></div>
+            </div>
+            <div class="preview-label">DESIGN_A.PNG<br>PREVIEW</div>
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-meta-row">
+            <div class="card-meta-item"><span class="meta-key">FILE_ID</span><span class="meta-val">A-001</span></div>
+            <div class="card-meta-item"><span class="meta-key">TYPE</span><span class="meta-val">MINIMAL</span></div>
+            <div class="card-meta-item"><span class="meta-key">STATUS</span><span class="meta-val" style="color:var(--green)">READY</span></div>
+          </div>
+          <div class="card-tags">
+            <span class="tag">MINIMAL</span>
+            <span class="tag">LIGHT</span>
+            <span class="tag tag-cyan">RECOMMENDED</span>
+          </div>
+          <p class="card-desc">
+            余白を最大限に活かし、情報の優先順位を明確にした構成です。ブランドカラーをアクセントに絞り、テキストの可読性と視線誘導を重視しています。シンプルさの中に品質を感じさせる設計。
+          </p>
+          <div class="card-actions">
+            <button class="btn-dl" onclick="downloadCard(this, 'design-01.png', 'Design_A_Minimal.png')">DOWNLOAD FILE_A</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 02 -->
+    <div class="design-card">
+      <div class="card-titlebar">
+        <span class="card-titlebar-icon">📄</span>
+        <span class="card-titlebar-name">DESIGN_B_DARK.PNG</span>
+        <span class="card-titlebar-size">1920×1080px · PNG</span>
+      </div>
+      <div class="card-body">
+        <div class="card-preview">
+          <!-- <img src="design-02.png" alt="Design B"> -->
+          <div class="preview-placeholder">
+            <div class="pixel-art-frame" style="border-color: var(--cyan)">
+              <div class="px" style="background:transparent"></div><div class="px" style="background: var(--cyan); opacity:0.8"></div><div class="px" style="background: var(--cyan); opacity:0.8"></div><div class="px" style="background: var(--cyan); opacity:0.8"></div><div class="px" style="background:transparent"></div>
+              <div class="px" style="background: var(--cyan); opacity:0.6"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--cyan); opacity:0.6"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--cyan); opacity:0.6"></div>
+              <div class="px" style="background: var(--cyan); opacity:0.8"></div><div class="px" style="background: var(--cyan); opacity:0.8"></div><div class="px" style="background: var(--cyan); opacity:0.8"></div><div class="px" style="background: var(--cyan); opacity:0.8"></div><div class="px" style="background: var(--cyan); opacity:0.8"></div>
+              <div class="px" style="background: var(--cyan); opacity:0.6"></div><div class="px" style="background:transparent"></div><div class="px" style="background:transparent"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--cyan); opacity:0.6"></div>
+              <div class="px" style="background: var(--cyan); opacity:0.4"></div><div class="px" style="background: var(--cyan); opacity:0.4"></div><div class="px" style="background: var(--cyan); opacity:0.4"></div><div class="px" style="background: var(--cyan); opacity:0.4"></div><div class="px" style="background: var(--cyan); opacity:0.4"></div>
+            </div>
+            <div class="preview-label" style="color:var(--cyan)">DESIGN_B.PNG<br>PREVIEW</div>
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-meta-row">
+            <div class="card-meta-item"><span class="meta-key">FILE_ID</span><span class="meta-val">B-002</span></div>
+            <div class="card-meta-item"><span class="meta-key">TYPE</span><span class="meta-val" style="color:var(--cyan)">DARK</span></div>
+            <div class="card-meta-item"><span class="meta-key">STATUS</span><span class="meta-val" style="color:var(--green)">READY</span></div>
+          </div>
+          <div class="card-tags">
+            <span class="tag" style="background:var(--cyan); color:var(--bg)">DARK</span>
+            <span class="tag" style="background:var(--cyan); color:var(--bg)">PREMIUM</span>
+          </div>
+          <p class="card-desc">
+            ダークベースのカラースキームで、リッチで高品質な印象を与えます。ハイライトカラーとのコントラストにより、CTAや重要情報への注目度を高めた設計。プレミアム感・先進性の訴求に最適。
+          </p>
+          <div class="card-actions">
+            <button class="btn-dl" style="color:var(--cyan); border-color:var(--cyan); box-shadow: 3px 3px 0 #005566" onclick="downloadCard(this, 'design-02.png', 'Design_B_Dark.png')">DOWNLOAD FILE_B</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 03 -->
+    <div class="design-card">
+      <div class="card-titlebar">
+        <span class="card-titlebar-icon">📄</span>
+        <span class="card-titlebar-name">DESIGN_C_WARM.PNG</span>
+        <span class="card-titlebar-size">1920×1080px · PNG</span>
+      </div>
+      <div class="card-body">
+        <div class="card-preview">
+          <!-- <img src="design-03.png" alt="Design C"> -->
+          <div class="preview-placeholder">
+            <div class="pixel-art-frame" style="border-color: var(--amber)">
+              <div class="px" style="background: var(--amber); opacity:0.9"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--amber); opacity:0.5"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--amber); opacity:0.9"></div>
+              <div class="px" style="background:transparent"></div><div class="px" style="background: var(--amber); opacity:0.7"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--amber); opacity:0.7"></div><div class="px" style="background:transparent"></div>
+              <div class="px" style="background: var(--amber); opacity:0.5"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--amber); opacity:0.9"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--amber); opacity:0.5"></div>
+              <div class="px" style="background:transparent"></div><div class="px" style="background: var(--amber); opacity:0.7"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--amber); opacity:0.7"></div><div class="px" style="background:transparent"></div>
+              <div class="px" style="background: var(--amber); opacity:0.9"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--amber); opacity:0.5"></div><div class="px" style="background:transparent"></div><div class="px" style="background: var(--amber); opacity:0.9"></div>
+            </div>
+            <div class="preview-label" style="color:var(--amber)">DESIGN_C.PNG<br>PREVIEW</div>
+          </div>
+        </div>
+        <div class="card-info">
+          <div class="card-meta-row">
+            <div class="card-meta-item"><span class="meta-key">FILE_ID</span><span class="meta-val">C-003</span></div>
+            <div class="card-meta-item"><span class="meta-key">TYPE</span><span class="meta-val" style="color:var(--amber)">WARM</span></div>
+            <div class="card-meta-item"><span class="meta-key">STATUS</span><span class="meta-val" style="color:var(--green)">READY</span></div>
+          </div>
+          <div class="card-tags">
+            <span class="tag" style="background:var(--amber2); color:var(--bg)">WARM</span>
+            <span class="tag" style="background:var(--amber2); color:var(--bg)">EDITORIAL</span>
+          </div>
+          <p class="card-desc">
+            暖色系トーンとエディトリアルなレイアウトで、親しみやすさと信頼感を両立。セリフ体とサンセリフ体のペアリングがページに豊かな表情をもたらします。コンテンツドリブンな構成。
+          </p>
+          <div class="card-actions">
+            <button class="btn-dl" style="color:var(--amber); border-color:var(--amber); box-shadow: 3px 3px 0 var(--amber2)" onclick="downloadCard(this, 'design-03.png', 'Design_C_Warm.png')">DOWNLOAD FILE_C</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="px-divider" style="--before: none">
+
+<!-- FAQ -->
+<section class="section" id="faq" style="padding-top: 60px">
+  <div class="section-header">
+    <div class="sec-label">README.TXT</div>
+    <h2>よくある質問</h2>
+    <p>&gt; FREQUENTLY ASKED QUESTIONS — v1.0</p>
+  </div>
+
+  <div class="faq-window px-border">
+    <details class="faq-item">
+      <summary class="faq-q">ファイル形式はPNGのみですか？</summary>
+      <p class="faq-a">本ページではPNG形式でのご提供となります。FigmaデータやSVG・PDF等が必要な場合は別途ご相談ください。</p>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-q">修正依頼はどのように行えばよいですか？</summary>
+      <p class="faq-a">ページ下部の CONTACT セクションよりご連絡ください。修正内容をできるだけ具体的にお伝えいただけると、スムーズに対応できます。</p>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-q">複数のデザイン案を組み合わせることは可能ですか？</summary>
+      <p class="faq-a">可能です。「FILE_A のレイアウトに FILE_C のカラートーンを適用したい」などのご要望もお気軽にご相談ください。</p>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-q">レスポンシブ対応はされていますか？</summary>
+      <p class="faq-a">はい。各デザインはモバイル・タブレット・デスクトップすべてに対応したレスポンシブデザインです。実装フェーズでも品質を維持します。</p>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-q">承認後のスケジュールを教えてください。</summary>
+      <p class="faq-a">デザイン確定後、実装フェーズへ移行します。詳細なスケジュールはご承認のご連絡をいただいた後に改めてご提示いたします。</p>
+    </details>
+  </div>
+</section>
+
+<!-- FOOTER / CONTACT -->
+<footer id="contact">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-block-label">CREATOR_INFO</div>
+      <div class="footer-name">YOUR NAME</div>
+      <div class="footer-role">UI / UX Designer</div>
+    </div>
+    <div>
+      <div class="footer-block-label">CONTACT</div>
+      <ul class="contact-list">
+        <li><a href="mailto:your@email.com">your@email.com</a></li>
+        <li><a href="https://x.com/yourhandle" target="_blank" rel="noopener">@yourhandle</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-copy">
+    © 2026 YOUR NAME — CONFIDENTIAL · FOR CLIENT REVIEW ONLY
+    <span class="cursor"></span>
+  </div>
+</footer>
+
+<script>
+  // ── Clock ──
+  function tick() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('clock').textContent =
+      pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // ── IntersectionObserver ──
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e,i) => {
+      if(e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.design-card').forEach(el => io.observe(el));
+
+  // ── Download ──
+  function downloadCard(btn, src, filename) {
+    const card = btn.closest('.design-card');
+    const img = card.querySelector('img');
+
+    if (img && img.src && !img.src.endsWith('/') && !img.src.includes('undefined')) {
+      const a = document.createElement('a');
+      a.href = img.src;
+      a.download = filename;
+      a.click();
+      return;
+    }
+
+    // Fallback placeholder
+    const canvas = document.createElement('canvas');
+    canvas.width = 1920; canvas.height = 1080;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#0a0a0f';
+    ctx.fillRect(0, 0, 1920, 1080);
+
+    // Pixel grid
+    ctx.strokeStyle = 'rgba(57,255,110,0.06)';
+    ctx.lineWidth = 1;
+    for(let x=0;x<1920;x+=32){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,1080);ctx.stroke();}
+    for(let y=0;y<1080;y+=32){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(1920,y);ctx.stroke();}
+
+    ctx.fillStyle = '#39ff6e';
+    ctx.font = 'bold 48px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(filename.replace('.png',''), 960, 520);
+    ctx.font = '24px monospace';
+    ctx.fillStyle = '#555577';
+    ctx.fillText('// 画像をここに配置してください //', 960, 580);
+
+    const a = document.createElement('a');
+    a.download = filename;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  }
+</script>
+</body>
+</html>
